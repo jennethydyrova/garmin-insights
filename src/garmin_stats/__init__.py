@@ -1,7 +1,7 @@
 import os 
 import logging
 from datetime import date
-from functools import cached_property
+from functools import cached_property, lru_cache
 from garminconnect import Garmin
 from typing import Optional, Dict, Any
 
@@ -17,10 +17,6 @@ class GarminStats:
             date_str: Date string in YYYY-MM-DD format. Defaults to today.
         """
         self.date_str = date_str or date.today().strftime('%Y-%m-%d')
-        self._stats_cache = None
-        self._sleep_cache = None
-        self._steps_cache = None
-        self._cache_date = None
     
     @cached_property
     def client(self) -> Garmin:
@@ -45,18 +41,8 @@ class GarminStats:
         
         return garmin_client
     
-    def _is_cache_valid(self, target_date: str) -> bool:
-        """Check if cache is valid for the given date"""
-        return self._cache_date == target_date and self._stats_cache is not None
     
-    def _is_sleep_cache_valid(self, target_date: str) -> bool:
-        """Check if sleep cache is valid for the given date"""
-        return self._cache_date == target_date and self._sleep_cache is not None
-    
-    def _is_steps_cache_valid(self, target_date: str) -> bool:
-        """Check if steps cache is valid for the given date"""
-        return self._cache_date == target_date and self._steps_cache is not None
-
+    @lru_cache(maxsize=32)
     def get_stats(self, date_str: Optional[str] = None) -> Dict[str, Any]:
         """
         Get Garmin stats with caching.
@@ -69,46 +55,14 @@ class GarminStats:
         """
         target_date = date_str or self.date_str
         
-        # Return cached data if available and for the same date
-        if self._is_cache_valid(target_date):
-            logging.debug(f"Returning cached stats for {target_date}")
-            return self._stats_cache
-        
         try:
-            logging.info(f"Fetching fresh stats for {target_date}")
-            self._stats_cache = self.client.get_stats(target_date)
-            self._cache_date = target_date
-            return self._stats_cache
+            logging.info(f"Fetching stats for {target_date}")
+            return self.client.get_stats(target_date)
         except Exception as e:
             logging.error(f"Error fetching Garmin stats: {e}")
             raise e
     
-    def get_steps_data(self, date_str: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Get steps data with caching.
-        
-        Args:
-            date_str: Date string in YYYY-MM-DD format. If None, uses instance date.
-            
-        Returns:
-            Dictionary containing steps data for the specified date.
-        """
-        target_date = date_str or self.date_str
-        
-        # Return cached data if available and for the same date
-        if self._is_steps_cache_valid(target_date):
-            logging.debug(f"Returning cached steps data for {target_date}")
-            return self._steps_cache
-        
-        try:
-            logging.info(f"Fetching fresh steps data for {target_date}")
-            self._steps_cache = self.client.get_steps_data(target_date)
-            self._cache_date = target_date
-            return self._steps_cache
-        except Exception as e:
-            logging.error(f"Error fetching steps data: {e}")
-            raise e
-    
+    @lru_cache(maxsize=32)
     def get_sleep_data(self, date_str: Optional[str] = None) -> Dict[str, Any]:
         """
         Get sleep data with caching.
@@ -121,26 +75,17 @@ class GarminStats:
         """
         target_date = date_str or self.date_str
         
-        # Return cached data if available and for the same date
-        if self._is_sleep_cache_valid(target_date):
-            logging.debug(f"Returning cached sleep data for {target_date}")
-            return self._sleep_cache
-        
         try:
-            logging.info(f"Fetching fresh sleep data for {target_date}")
-            self._sleep_cache = self.client.get_sleep_data(target_date)
-            self._cache_date = target_date
-            return self._sleep_cache
+            logging.info(f"Fetching sleep data for {target_date}")
+            return self.client.get_sleep_data(target_date)
         except Exception as e:
             logging.error(f"Error fetching sleep data: {e}")
             raise e
     
     def clear_cache(self):
         """Clear all cached data."""
-        self._stats_cache = None
-        self._sleep_cache = None
-        self._steps_cache = None
-        self._cache_date = None
+        self.get_stats.cache_clear()
+        self.get_sleep_data.cache_clear()
         logging.info("Cache cleared")
     
     def update_date(self, date_str: str):
@@ -166,15 +111,16 @@ class GarminStats:
         self.clear_cache()
         self.get_stats(target_date)
         self.get_sleep_data(target_date)
-        self.get_steps_data(target_date)
     
     @property
     def cache_info(self) -> Dict[str, Any]:
         """Get information about current cache state."""
         return {
-            "cache_date": self._cache_date,
-            "has_stats_cache": self._stats_cache is not None,
-            "has_sleep_cache": self._sleep_cache is not None,
-            "has_steps_cache": self._steps_cache is not None,
+            "stats_cache_size": self.get_stats.cache_info().currsize,
+            "sleep_cache_size": self.get_sleep_data.cache_info().currsize,
+            "stats_cache_hits": self.get_stats.cache_info().hits,
+            "sleep_cache_hits": self.get_sleep_data.cache_info().hits,
+            "stats_cache_misses": self.get_stats.cache_info().misses,
+            "sleep_cache_misses": self.get_sleep_data.cache_info().misses,
             "instance_date": self.date_str
         }
