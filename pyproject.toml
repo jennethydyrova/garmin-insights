@@ -1,0 +1,19 @@
+[project]
+name = "garmin-insights"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "jennethydyrova",email = "jennethydyrovaa@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard] (>=0.116.1,<0.117.0)",
+    "garminconnect (>=0.2.30,<0.3.0)",
+    "garth (>=0.5.17,<0.6.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
