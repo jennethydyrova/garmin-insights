@@ -4,7 +4,6 @@ Simple script to run the Garmin Insights FastAPI application
 """
 
 import uvicorn
-from src.main import app
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -12,5 +11,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,
-        log_level="info"
+        log_level="info",
     )

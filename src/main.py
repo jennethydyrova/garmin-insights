@@ -1,15 +1,17 @@
 from fastapi import FastAPI
+
 from .api.insights import activity, sleep
 
 app = FastAPI(
     title="Garmin Insights API",
     description="API for accessing some extra Garmin health and fitness insights",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 # Include all insight routers
 app.include_router(activity.router)
 app.include_router(sleep.router)
+
 
 @app.get("/")
 async def root():
@@ -22,7 +24,7 @@ async def root():
             "body_battery": "/insights/body-battery/",
             "sleep": "/insights/sleep/",
             "stress": "/insights/stress/",
-            "respiration": "/insights/respiration/"
+            "respiration": "/insights/respiration/",
         },
         "sleep_endpoints": {
             "time_in_bed": "/insights/sleep/time_in_bed",
@@ -34,9 +36,10 @@ async def root():
             "sleep_fragmentation_index": "/insights/sleep/sleep_fragmentation_index",
             "stage_composition_analysis": "/insights/sleep/stage_composition_analysis",
             "sleep_need_gap_minutes": "/insights/sleep/sleep_need_gap_minutes",
-            "health": "/insights/sleep/health"
-        }
+            "health": "/insights/sleep/health",
+        },
     }
+
 
 @app.get("/health")
 async def health_check():
