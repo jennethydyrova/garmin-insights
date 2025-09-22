@@ -10,10 +10,18 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard] (>=0.116.1,<0.117.0)",
     "garminconnect (>=0.2.30,<0.3.0)",
-    "garth (>=0.5.17,<0.6.0)"
+    "garth (>=0.5.17,<0.6.0)",
+    "black (>=25.9.0,<26.0.0)",
+    "pre-commit (>=4.3.0,<5.0.0)",
+    "flake8 (>=7.3.0,<8.0.0)",
+    "isort (>=6.0.1,<7.0.0)"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = "120"

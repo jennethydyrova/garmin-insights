@@ -1,9 +1,11 @@
+from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 
 
 class Metric(BaseModel):
     """Generic metric response model"""
+
     metric: float = Field(..., description="The calculated metric value")
     unit: str = Field(..., description="Unit of measurement")
     description: str = Field(..., description="Detailed description of the metric")
@@ -11,6 +13,7 @@ class Metric(BaseModel):
 
 class ActivityData(BaseModel):
     """Extracted activity data"""
+
     total_steps: int = 0
     daily_step_goal: int = 0
     total_kilocalories: int = 0
@@ -22,6 +25,7 @@ class ActivityData(BaseModel):
 
 class SleepData(BaseModel):
     """Extracted sleep stage data"""
+
     deep: int = 0
     light: int = 0
     rem: int = 0
